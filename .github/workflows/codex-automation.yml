@@ -1,0 +1,35 @@
+name: Codex Automation for Task Manager
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Codex CLI
+        run: |
+          npm install -g @openai/codex
+
+      - name: Run Codex to update CHANGELOG
+        run: |
+          export AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}"
+          codex exec --full-auto "Update CHANGELOG for the new release"
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add CHANGELOG.md
+          git commit -m "Codex: Automated CHANGELOG update"
+          git push
+
